@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Vértex Local — Field Pitch Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1814;
+  --sand: #f4f0e8;
+  --warm: #e8e0d0;
+  --gold: #b8860b;
+  --gold-light: #d4a017;
+  --gold-pale: rgba(184,134,11,0.08);
+  --red: #c0392b;
+  --green: #2e7d32;
+  --muted: #6b6560;
+  --border: rgba(26,24,20,0.12);
+  --r: 4px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--ink);
+  color: var(--sand);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+.header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--sand); letter-spacing: 0.01em;
+}
+.logo span { color: var(--gold-light); }
+.tool-badge {
+  font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--gold);
+  border: 1px solid rgba(184,134,11,0.3);
+  padding: 4px 10px; border-radius: 2px;
+}
+
+/* ── API KEY SETUP ── */
+#setup-screen {
+  max-width: 480px; margin: 0 auto; padding: 48px 24px;
+}
+.setup-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 700; margin-bottom: 8px; line-height: 1.15;
+}
+.setup-sub {
+  font-size: 13px; font-weight: 300; color: rgba(244,240,232,0.5);
+  line-height: 1.7; margin-bottom: 32px;
+}
+.setup-field { margin-bottom: 16px; }
+.setup-label {
+  display: block; font-size: 10px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(244,240,232,0.4); margin-bottom: 8px;
+}
+.setup-input {
+  width: 100%; padding: 12px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--r); color: var(--sand);
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  outline: none; transition: border-color 0.2s;
+  font-family: monospace;
+}
+.setup-input:focus { border-color: var(--gold); }
+.setup-input::placeholder { color: rgba(244,240,232,0.2); font-family: 'DM Sans', sans-serif; }
+.setup-btn {
+  width: 100%; padding: 14px;
+  background: var(--gold); color: var(--ink);
+  border: none; border-radius: var(--r);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background 0.2s;
+  margin-top: 8px;
+}
+.setup-btn:hover { background: var(--gold-light); }
+.setup-note {
+  font-size: 11px; color: rgba(244,240,232,0.25);
+  line-height: 1.7; margin-top: 16px; text-align: center;
+}
+.setup-note a { color: var(--gold); }
+.setup-steps {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r); padding: 20px; margin-bottom: 28px;
+}
+.setup-step {
+  display: flex; gap: 12px; align-items: flex-start;
+  font-size: 12px; font-weight: 300; color: rgba(244,240,232,0.6);
+  line-height: 1.6; margin-bottom: 12px;
+}
+.setup-step:last-child { margin-bottom: 0; }
+.step-n {
+  font-size: 11px; font-weight: 600; color: var(--gold);
+  flex-shrink: 0; min-width: 18px; margin-top: 1px;
+}
+
+/* ── SEARCH SCREEN ── */
+#search-screen { display: none; padding: 24px; max-width: 600px; margin: 0 auto; }
+
+.search-eyebrow {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--gold);
+  margin-bottom: 6px;
+}
+.search-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px; font-weight: 700; line-height: 1.1;
+  margin-bottom: 24px;
+}
+
+.search-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  margin-bottom: 12px;
+}
+.search-field { display: flex; flex-direction: column; gap: 6px; }
+.search-label {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(244,240,232,0.4);
+}
+.search-input, .search-select {
+  padding: 11px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--r); color: var(--sand);
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  outline: none; transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.search-input:focus, .search-select:focus { border-color: var(--gold); }
+.search-input::placeholder { color: rgba(244,240,232,0.2); }
+.search-select option { background: #1a1814; }
+
+.search-go {
+  width: 100%; padding: 14px;
+  background: var(--gold); color: var(--ink);
+  border: none; border-radius: var(--r);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 600; letter-spacing: 0.02em;
+  cursor: pointer; transition: all 0.2s; margin-top: 4px;
+}
+.search-go:hover { background: var(--gold-light); }
+.search-go:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.change-key {
+  font-size: 11px; color: rgba(244,240,232,0.25);
+  background: none; border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; padding: 0;
+  text-decoration: underline; margin-top: 12px; display: block;
+  transition: color 0.2s;
+}
+.change-key:hover { color: rgba(244,240,232,0.5); }
+
+/* ── LOADING ── */
+#loading-screen {
+  display: none; padding: 64px 24px; text-align: center;
+}
+.loading-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 700; margin-bottom: 8px;
+}
+.loading-sub {
+  font-size: 13px; font-weight: 300; color: rgba(244,240,232,0.4);
+  margin-bottom: 32px;
+}
+.loading-bar-wrap {
+  width: 200px; height: 2px; background: rgba(255,255,255,0.08);
+  border-radius: 2px; margin: 0 auto; overflow: hidden;
+}
+.loading-bar {
+  height: 100%; width: 0%; background: var(--gold);
+  border-radius: 2px; transition: width 0.4s ease;
+}
+
+/* ── RESULTS SCREEN ── */
+#results-screen { display: none; padding: 20px 16px; max-width: 700px; margin: 0 auto; }
+
+.results-header { margin-bottom: 20px; }
+.results-eyebrow {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 4px;
+}
+.results-headline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 700; line-height: 1.2;
+}
+.results-sub {
+  font-size: 12px; font-weight: 300; color: rgba(244,240,232,0.4);
+  margin-top: 4px;
+}
+
+/* The verdict bar */
+.verdict-bar {
+  display: flex; align-items: stretch; gap: 0;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r); overflow: hidden; margin-bottom: 20px;
+}
+.verdict-them {
+  flex: 1; background: rgba(46,125,50,0.12);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  padding: 14px 16px;
+}
+.verdict-you {
+  flex: 1; background: rgba(192,57,43,0.1);
+  padding: 14px 16px;
+}
+.verdict-label {
+  font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.verdict-label.green { color: rgba(100,200,100,0.7); }
+.verdict-label.red { color: rgba(220,100,80,0.7); }
+.verdict-name {
+  font-size: 14px; font-weight: 600; color: var(--sand);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.verdict-type {
+  font-size: 11px; font-weight: 300; color: rgba(244,240,232,0.4); margin-top: 2px;
+}
+
+/* Comparison grid */
+.compare-grid { display: flex; flex-direction: column; gap: 2px; }
+
+.compare-row {
+  display: grid; grid-template-columns: 1fr 120px 1fr;
+  align-items: center; gap: 0;
+  background: rgba(255,255,255,0.025);
+  border-radius: 2px; overflow: hidden;
+}
+.compare-row:hover { background: rgba(255,255,255,0.04); }
+
+.compare-cell-them {
+  padding: 11px 14px;
+  background: rgba(46,125,50,0.07);
+  display: flex; align-items: center; gap: 10px;
+}
+.compare-cell-label {
+  padding: 10px 12px; text-align: center;
+  background: rgba(255,255,255,0.03);
+  border-left: 1px solid rgba(255,255,255,0.05);
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+.compare-cell-you {
+  padding: 11px 14px;
+  background: rgba(192,57,43,0.06);
+  display: flex; align-items: center; gap: 10px;
+  justify-content: flex-end;
+}
+
+.cell-icon {
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; flex-shrink: 0;
+}
+.icon-yes { background: rgba(46,125,50,0.25); color: #81c784; }
+.icon-no  { background: rgba(192,57,43,0.2);  color: #e57373; }
+
+.cell-text {
+  font-size: 12px; font-weight: 400; color: rgba(244,240,232,0.8);
+  line-height: 1.3;
+}
+.cell-text.muted { color: rgba(244,240,232,0.3); font-style: italic; }
+
+.compare-label-text {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.04em;
+  color: rgba(244,240,232,0.35); line-height: 1.4;
+  text-transform: uppercase;
+}
+
+/* Rating stars */
+.stars { color: #fdd835; font-size: 11px; letter-spacing: -1px; }
+
+/* The close card */
+.close-card {
+  margin-top: 20px;
+  background: rgba(184,134,11,0.1);
+  border: 1px solid rgba(184,134,11,0.3);
+  border-radius: var(--r); padding: 20px 18px;
+  display: flex; gap: 16px; align-items: flex-start;
+}
+.close-icon { font-size: 22px; flex-shrink: 0; }
+.close-headline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 700; color: var(--gold-light);
+  margin-bottom: 4px; line-height: 1.2;
+}
+.close-body {
+  font-size: 12px; font-weight: 300; color: rgba(244,240,232,0.55);
+  line-height: 1.7;
+}
+
+.action-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-top: 16px;
+}
+.btn-claim {
+  padding: 13px; background: var(--gold); color: var(--ink);
+  border: none; border-radius: var(--r);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s; text-align: center;
+  text-decoration: none; display: block;
+}
+.btn-claim:hover { background: var(--gold-light); }
+.btn-new {
+  padding: 13px; background: transparent; color: rgba(244,240,232,0.6);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: var(--r);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 400; cursor: pointer;
+  transition: all 0.2s; text-align: center;
+}
+.btn-new:hover { border-color: rgba(255,255,255,0.25); color: var(--sand); }
+
+/* Error state */
+.error-box {
+  background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.3);
+  border-radius: var(--r); padding: 16px 18px; margin-top: 16px;
+  font-size: 13px; font-weight: 300; color: rgba(244,240,232,0.65);
+  line-height: 1.7; display: none;
+}
+.error-box strong { color: #e57373; }
+
+/* No results */
+.no-results {
+  text-align: center; padding: 48px 24px; display: none;
+}
+.no-results-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 700; margin-bottom: 8px;
+}
+.no-results-sub {
+  font-size: 13px; color: rgba(244,240,232,0.4); line-height: 1.7; margin-bottom: 24px;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.4s ease both; }
+.d1 { animation-delay: 0.05s; }
+.d2 { animation-delay: 0.1s; }
+.d3 { animation-delay: 0.15s; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Vértex<span>.</span>Local</div>
+  <div class="tool-badge">Field Pitch Tool</div>
+</div>
+
+<!-- ═══ SETUP SCREEN ═══ -->
+<div id="setup-screen">
+  <div style="margin-bottom: 32px; margin-top: 8px;">
+    <div class="search-eyebrow">One-time setup</div>
+    <div class="setup-title">Connect live Google data.</div>
+    <p class="setup-sub">This tool pulls real competitor businesses from Google Maps. You need a free Google Places API key — takes about 5 minutes to get.</p>
+  </div>
+
+  <div class="setup-steps">
+    <div class="setup-step">
+      <span class="step-n">01</span>
+      Go to <strong style="color:rgba(244,240,232,0.8);">console.cloud.google.com</strong> and sign in with your Google account
+    </div>
+    <div class="setup-step">
+      <span class="step-n">02</span>
+      Create a new project, then go to <strong style="color:rgba(244,240,232,0.8);">APIs & Services → Enable APIs</strong> and enable <strong style="color:rgba(244,240,232,0.8);">Places API</strong>
+    </div>
+    <div class="setup-step">
+      <span class="step-n">03</span>
+      Go to <strong style="color:rgba(244,240,232,0.8);">APIs & Services → Credentials → Create API Key</strong> and copy the key
+    </div>
+    <div class="setup-step">
+      <span class="step-n">04</span>
+      Paste it below. It saves on this device — you only do this once.
+    </div>
+  </div>
+
+  <div class="setup-field">
+    <label class="setup-label">Your Google Places API Key</label>
+    <input id="api-key-input" class="setup-input" type="text" placeholder="AIzaSy..." autocomplete="off" spellcheck="false">
+  </div>
+
+  <button class="setup-btn" onclick="saveKey()">Save Key & Start Using Tool →</button>
+
+  <p class="setup-note">
+    The key is stored only on this device.<br>
+    Google gives $200 free credit/month — more than enough for daily field use.<br>
+    <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a>
+  </p>
+</div>
+
+<!-- ═══ SEARCH SCREEN ═══ -->
+<div id="search-screen">
+  <div class="search-eyebrow">Visibility Audit</div>
+  <div class="search-title">Find who's winning<br>on Google near them.</div>
+
+  <div class="search-row">
+    <div class="search-field">
+      <label class="search-label">Business Type</label>
+      <select id="s-type" class="search-select">
+        <option value="">Select trade…</option>
+        <option value="welding shop">Welding / Fabrication</option>
+        <option value="auto repair shop">Auto Repair / Mechanic</option>
+        <option value="auto body shop">Auto Body / Paint</option>
+        <option value="diesel repair shop">Diesel Repair</option>
+        <option value="mobile mechanic">Mobile Mechanic</option>
+        <option value="HVAC contractor">HVAC</option>
+        <option value="plumber">Plumbing</option>
+        <option value="electrician">Electrical</option>
+        <option value="towing service">Towing</option>
+        <option value="landscaping service">Lawn & Land</option>
+        <option value="general contractor">Contractor</option>
+        <option value="trailer repair shop">Trailer Repair</option>
+        <option value="equipment repair shop">Equipment Repair</option>
+      </select>
+    </div>
+    <div class="search-field">
+      <label class="search-label">City / Area</label>
+      <input id="s-city" class="search-input" type="text" placeholder="Wills Point, TX">
+    </div>
+  </div>
+
+  <div class="search-field" style="margin-bottom: 14px;">
+    <label class="search-label">Their Business Name <span style="color:rgba(244,240,232,0.2); font-size:9px; text-transform:none; letter-spacing:0;">(the owner standing next to you)</span></label>
+    <input id="s-prospect" class="search-input" type="text" placeholder="Joe's Welding">
+  </div>
+
+  <button id="go-btn" class="search-go" onclick="runSearch()">Pull Up Competitors →</button>
+
+  <div id="search-error" class="error-box">
+    <strong>Could not reach Google.</strong> Check that your API key is correct and the Places API is enabled in your Google Console project.
+  </div>
+
+  <button class="change-key" onclick="changeKey()">Change API key</button>
+</div>
+
+<!-- ═══ LOADING SCREEN ═══ -->
+<div id="loading-screen">
+  <div class="loading-title">Searching Google…</div>
+  <div class="loading-sub" id="loading-msg">Finding businesses near you</div>
+  <div class="loading-bar-wrap">
+    <div class="loading-bar" id="loading-bar"></div>
+  </div>
+</div>
+
+<!-- ═══ RESULTS SCREEN ═══ -->
+<div id="results-screen">
+
+  <div class="results-header fade-up">
+    <div class="results-eyebrow">Live Google Data</div>
+    <div class="results-headline" id="r-headline">Here's what Google shows right now.</div>
+    <div class="results-sub" id="r-sub"></div>
+  </div>
+
+  <!-- Verdict bar -->
+  <div class="verdict-bar fade-up d1">
+    <div class="verdict-them">
+      <div class="verdict-label green">✓ Found on Google</div>
+      <div class="verdict-name" id="r-comp-name">Competitor</div>
+      <div class="verdict-type" id="r-comp-type"></div>
+    </div>
+    <div class="verdict-you">
+      <div class="verdict-label red">✗ Not Found</div>
+      <div class="verdict-name" id="r-prospect-name">Your Business</div>
+      <div class="verdict-type" id="r-prospect-type">No online presence</div>
+    </div>
+  </div>
+
+  <!-- Compare grid -->
+  <div class="compare-grid fade-up d2" id="compare-grid"></div>
+
+  <!-- No results fallback -->
+  <div class="no-results" id="no-results">
+    <div class="no-results-title">No competitors found nearby.</div>
+    <div class="no-results-sub">That actually makes this easier — there's nobody on Google yet. Being first in this category in this area is a significant advantage.</div>
+    <button class="btn-new" onclick="newSearch()">Try a different search</button>
+  </div>
+
+  <!-- Close card -->
+  <div class="close-card fade-up d3" id="close-card" style="display:none;">
+    <div class="close-icon">📍</div>
+    <div>
+      <div class="close-headline" id="close-headline">This gap is costing you customers every day.</div>
+      <div class="close-body" id="close-body">Every time someone searches for this trade near here, they find your competitor — not you. We fix that today, for free, in 10 minutes.</div>
+      <div class="action-row">
+        <a href="vertex-local-v3.html" class="btn-claim">Claim Your Free Profile →</a>
+        <button class="btn-new" onclick="newSearch()">New Search</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const PROXY = 'https://corsproxy.io/?';
+
+// ── Storage ──
+function getKey() { return localStorage.getItem('vl_api_key') || ''; }
+function saveKey() {
+  const k = document.getElementById('api-key-input').value.trim();
+  if (!k) { alert('Paste your API key first.'); return; }
+  localStorage.setItem('vl_api_key', k);
+  showScreen('search');
+}
+function changeKey() {
+  localStorage.removeItem('vl_api_key');
+  showScreen('setup');
+}
+
+// ── Screen manager ──
+function showScreen(name) {
+  ['setup','search','loading','results'].forEach(s => {
+    document.getElementById(s + '-screen').style.display = 'none';
+  });
+  document.getElementById(name + '-screen').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+// ── Init ──
+window.onload = () => {
+  if (getKey()) showScreen('search');
+  else showScreen('setup');
+};
+
+// ── Loading animation ──
+let loadTimer;
+function startLoading(msg) {
+  showScreen('loading');
+  document.getElementById('loading-msg').textContent = msg || 'Searching Google…';
+  let pct = 0;
+  const bar = document.getElementById('loading-bar');
+  bar.style.width = '0%';
+  loadTimer = setInterval(() => {
+    pct = Math.min(pct + Math.random() * 12, 88);
+    bar.style.width = pct + '%';
+  }, 300);
+}
+function stopLoading() {
+  clearInterval(loadTimer);
+  document.getElementById('loading-bar').style.width = '100%';
+}
+
+// ── Main search ──
+async function runSearch() {
+  const type     = document.getElementById('s-type').value;
+  const city     = document.getElementById('s-city').value.trim();
+  const prospect = document.getElementById('s-prospect').value.trim();
+  const key      = getKey();
+
+  document.getElementById('search-error').style.display = 'none';
+
+  if (!type) { alert('Select a business type.'); return; }
+  if (!city) { alert('Enter a city or area.'); return; }
+  if (!prospect) { alert('Enter the business name of the owner you\'re with.'); return; }
+
+  startLoading('Finding ' + type + ' businesses near ' + city + '…');
+
+  try {
+    // Step 1: geocode city to lat/lng
+    const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(city)}&key=${key}`;
+    const geoRes = await fetch(PROXY + encodeURIComponent(geoUrl));
+    const geoData = await geoRes.json();
+
+    if (!geoData.results || !geoData.results.length) {
+      throw new Error('Location not found');
+    }
+    const loc = geoData.results[0].geometry.location;
+
+    // Step 2: nearby search
+    document.getElementById('loading-msg').textContent = 'Pulling Google results…';
+    const placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${loc.lat},${loc.lng}&radius=24000&type=establishment&keyword=${encodeURIComponent(type)}&key=${key}`;
+    const placesRes = await fetch(PROXY + encodeURIComponent(placesUrl));
+    const placesData = await placesRes.json();
+
+    stopLoading();
+
+    if (!placesData.results || placesData.results.length === 0) {
+      showScreen('results');
+      document.getElementById('no-results').style.display = 'block';
+      document.getElementById('compare-grid').innerHTML = '';
+      document.getElementById('close-card').style.display = 'none';
+      document.getElementById('verdict-bar') && (document.querySelector('.verdict-bar').style.display = 'none');
+      return;
+    }
+
+    // Step 3: Get detail for top result
+    document.getElementById('loading-msg').textContent = 'Loading competitor details…';
+    const topPlace = placesData.results[0];
+    const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${topPlace.place_id}&fields=name,rating,user_ratings_total,formatted_phone_number,website,opening_hours,photos,reviews,formatted_address&key=${key}`;
+    const detailRes = await fetch(PROXY + encodeURIComponent(detailUrl));
+    const detailData = await detailRes.json();
+    const detail = detailData.result || {};
+
+    renderResults(prospect, type, city, topPlace, detail, placesData.results.length);
+
+  } catch(e) {
+    stopLoading();
+    showScreen('search');
+    document.getElementById('search-error').style.display = 'block';
+    console.error(e);
+  }
+}
+
+// ── Render ──
+function renderResults(prospect, type, city, place, detail, totalFound) {
+  showScreen('results');
+  document.getElementById('no-results').style.display = 'none';
+  document.querySelector('.verdict-bar').style.display = 'flex';
+  document.getElementById('close-card').style.display = 'flex';
+
+  const compName = place.name || 'Competitor';
+  const rating   = detail.rating || place.rating;
+  const reviews  = detail.user_ratings_total || place.user_ratings_total || 0;
+  const hasPhone = !!detail.formatted_phone_number;
+  const hasWeb   = !!detail.website;
+  const hasHours = !!(detail.opening_hours && detail.opening_hours.weekday_text);
+  const hasPhotos= (place.photos && place.photos.length > 0);
+  const hasReviews = reviews > 0;
+  const stars    = rating ? renderStars(rating) : null;
+
+  // Header
+  document.getElementById('r-headline').textContent =
+    totalFound + ' ' + type + (totalFound === 1 ? '' : 's') + ' found near ' + city + '.';
+  document.getElementById('r-sub').textContent =
+    'Showing the top result. ' + prospect + ' does not appear in any of them.';
+
+  // Verdict bar
+  document.getElementById('r-comp-name').textContent = compName;
+  document.getElementById('r-comp-type').textContent =
+    rating ? '★ ' + rating.toFixed(1) + ' · ' + reviews + ' reviews' : type;
+  document.getElementById('r-prospect-name').textContent = prospect;
+  document.getElementById('r-prospect-type').textContent = 'Not on Google';
+
+  // Build comparison rows
+  const rows = [
+    {
+      label: 'Google Maps',
+      them: { yes: true, text: 'Shows up in search' },
+      you:  { yes: false, text: 'Not listed anywhere' }
+    },
+    {
+      label: 'Reviews',
+      them: { yes: hasReviews, text: hasReviews ? reviews + ' customer reviews' : 'No reviews' },
+      you:  { yes: false, text: 'No review profile' }
+    },
+    {
+      label: 'Star Rating',
+      them: { yes: !!rating, text: rating ? stars + ' (' + rating.toFixed(1) + ')' : 'No rating' },
+      you:  { yes: false, text: 'No rating' }
+    },
+    {
+      label: 'Phone Listed',
+      them: { yes: hasPhone, text: hasPhone ? detail.formatted_phone_number : 'Not listed' },
+      you:  { yes: false, text: 'Not listed' }
+    },
+    {
+      label: 'Website',
+      them: { yes: hasWeb, text: hasWeb ? 'Has a website' : 'No website' },
+      you:  { yes: false, text: 'No website' }
+    },
+    {
+      label: 'Business Hours',
+      them: { yes: hasHours, text: hasHours ? 'Hours posted' : 'Hours not listed' },
+      you:  { yes: false, text: 'Not listed' }
+    },
+    {
+      label: 'Photos',
+      them: { yes: hasPhotos, text: hasPhotos ? (place.photos.length) + ' photos on Google' : 'No photos' },
+      you:  { yes: false, text: 'No photos' }
+    },
+    {
+      label: 'Verified Profile',
+      them: { yes: true, text: 'Google verified' },
+      you:  { yes: false, text: 'Not verified' }
+    }
+  ];
+
+  const grid = document.getElementById('compare-grid');
+  grid.innerHTML = rows.map(row => `
+    <div class="compare-row">
+      <div class="compare-cell-them">
+        <div class="cell-icon ${row.them.yes ? 'icon-yes' : 'icon-no'}">${row.them.yes ? '✓' : '✗'}</div>
+        <span class="cell-text ${row.them.yes ? '' : 'muted'}">${row.them.text}</span>
+      </div>
+      <div class="compare-cell-label">
+        <div class="compare-label-text">${row.label}</div>
+      </div>
+      <div class="compare-cell-you">
+        <span class="cell-text muted">${row.you.text}</span>
+        <div class="cell-icon icon-no">✗</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Close card
+  const thingsTheyHave = rows.filter(r => r.them.yes).length;
+  document.getElementById('close-headline').textContent =
+    compName + ' has ' + thingsTheyHave + ' things working for them on Google right now.';
+  document.getElementById('close-body').textContent =
+    prospect + ' has zero. Every search for ' + type + ' near ' + city + ' sends that customer to ' + compName + ' — not you. We build all of this today, for free.';
+}
+
+function renderStars(rating) {
+  const full  = Math.floor(rating);
+  const half  = rating % 1 >= 0.5 ? 1 : 0;
+  const empty = 5 - full - half;
+  return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
+}
+
+function newSearch() {
+  document.getElementById('s-prospect').value = '';
+  showScreen('search');
+}
+</script>
+</body>
+</html>
