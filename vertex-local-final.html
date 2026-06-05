@@ -1493,25 +1493,25 @@ async function handleSignup() {
   btn.disabled = true;
 
   try {
+    const formData = new FormData();
+    formData.append('Owner Name', name);
+    formData.append('Business Name', biz);
+    formData.append('Phone', phone);
+    formData.append('Email', email || '');
+    formData.append('Trade Type', type);
+    formData.append('Service Type', serviceType);
+    formData.append('Address', addr);
+    formData.append('Service Area', area || '');
+    formData.append('Website', webStr);
+    formData.append('Hours', hoursStr);
+    formData.append('Social Media', socialStr);
+    formData.append('Agreement Signed', 'Yes');
+    formData.append('Agreed At', agreedAt);
+    formData.append('Source', 'Vertex Local Capture Page');
+
     await fetch('https://script.google.com/macros/s/AKfycbwyIap3VWSEP9qrJutk6zR3JtpB6HvfykDQ8PEw5EQeAsFx_eY7Vk3alpnEY5SeGVYAiw/exec', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        'Owner Name':        name,
-        'Business Name':     biz,
-        'Phone':             phone,
-        'Email':             email || 'Not provided',
-        'Trade Type':        type,
-        'Service Type':      serviceType,
-        'Address':           addr,
-        'Service Area':      area || 'N/A',
-        'Website':           webStr,
-        'Hours':             hoursStr,
-        'Social Media':      socialStr,
-        'Agreement Signed':  'Yes',
-        'Agreed At':         agreedAt,
-        'Source':            'Vertex Local Capture Page'
-      })
+      body: formData
     });
   } catch(e) {
     console.warn('Formspree submit failed:', e);
