@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vértex Local — The Point Where It All Starts</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1814;
+    --sand: #f4f0e8;
+    --warm: #e8e0d0;
+    --gold: #b8860b;
+    --gold-light: #d4a017;
+    --rust: #8b4513;
+    --muted: #6b6560;
+    --border: rgba(26,24,20,0.12);
+    --radius: 3px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--sand);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(244,240,232,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--gold); }
+  .nav-links { display: flex; gap: 32px; align-items: center; }
+  .nav-links a {
+    font-size: 13px; font-weight: 400; letter-spacing: 0.05em;
+    color: var(--muted); text-decoration: none; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta {
+    background: var(--ink) !important;
+    color: var(--sand) !important;
+    padding: 9px 22px !important;
+    border-radius: var(--radius) !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.03em !important;
+    text-transform: none !important;
+    font-size: 13px !important;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; min-height: 100vh; padding-top: 80px; }
+  .page.active { display: block; }
+
+  /* ── HERO ── */
+  #page-home {
+    display: none;
+    flex-direction: column;
+  }
+  #page-home.active { display: flex; }
+
+  .hero {
+    min-height: calc(100vh - 80px);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 48px;
+  }
+  .hero-left { padding-right: 60px; }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: inline-block; width: 28px; height: 1px;
+    background: var(--gold);
+  }
+  .hero-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(42px, 5vw, 68px);
+    font-weight: 600; line-height: 1.08;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+  }
+  .hero-headline em {
+    font-style: italic; color: var(--gold);
+  }
+  .hero-sub {
+    font-size: 16px; font-weight: 300; line-height: 1.7;
+    color: var(--muted); max-width: 440px;
+    margin-bottom: 40px;
+  }
+  .hero-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--ink); color: var(--sand);
+    padding: 14px 32px; border-radius: var(--radius);
+    font-size: 14px; font-weight: 500; letter-spacing: 0.03em;
+    border: none; cursor: pointer; transition: all 0.2s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-primary:hover { background: #2d2a25; transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent; color: var(--ink);
+    padding: 14px 32px; border-radius: var(--radius);
+    font-size: 14px; font-weight: 400;
+    border: 1px solid var(--border); cursor: pointer; transition: all 0.2s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-secondary:hover { background: var(--warm); }
+
+  .hero-right {
+    background: var(--ink);
+    border-radius: 4px;
+    padding: 40px;
+    color: var(--sand);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-right::before {
+    content: 'V';
+    position: absolute; top: -30px; right: -20px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 220px; font-weight: 600;
+    color: rgba(255,255,255,0.04);
+    line-height: 1;
+    pointer-events: none;
+  }
+  .hero-card-label {
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--gold-light); margin-bottom: 28px;
+  }
+  .hero-stat-row {
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .hero-stat {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .hero-stat:last-child { border-bottom: none; }
+  .stat-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(184,134,11,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .stat-info { flex: 1; }
+  .stat-label { font-size: 12px; color: rgba(244,240,232,0.5); margin-bottom: 2px; }
+  .stat-value { font-size: 15px; font-weight: 500; color: var(--sand); }
+  .stat-badge {
+    font-size: 10px; padding: 3px 8px; border-radius: 20px;
+    background: rgba(184,134,11,0.25); color: var(--gold-light);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── ABOUT ── */
+  .about-section {
+    max-width: 1100px; margin: 0 auto; padding: 100px 48px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start;
+  }
+  .section-label {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::before { content: ''; width: 20px; height: 1px; background: var(--gold); }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 3.5vw, 48px); font-weight: 600; line-height: 1.1;
+    margin-bottom: 24px;
+  }
+  .section-body { font-size: 15px; font-weight: 300; line-height: 1.8; color: var(--muted); }
+  .role-card {
+    background: var(--ink); color: var(--sand);
+    border-radius: 4px; padding: 36px;
+    position: sticky; top: 100px;
+  }
+  .role-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; font-weight: 600; margin-bottom: 8px;
+  }
+  .role-sub { font-size: 12px; color: var(--gold-light); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 28px; }
+  .role-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  .role-list li {
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: 14px; font-weight: 300; line-height: 1.5;
+    color: rgba(244,240,232,0.8);
+  }
+  .role-list li::before {
+    content: '→'; color: var(--gold); font-size: 14px;
+    flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* ── SERVICES ── */
+  .services-section {
+    background: var(--warm);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 100px 48px;
+  }
+  .services-inner { max-width: 900px; margin: 0 auto; }
+  .services-header { text-align: center; margin-bottom: 80px; }
+
+  /* Sticky scroll rows */
+  .service-row {
+    display: grid; grid-template-columns: 160px 1fr;
+    gap: 0; min-height: 220px;
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+  .service-row:last-child { border-bottom: 1px solid var(--border); }
+
+  .service-num-col {
+    position: sticky; top: 80px;
+    height: fit-content;
+    padding: 40px 0 40px 0;
+    display: flex; align-items: flex-start; justify-content: flex-start;
+  }
+  .service-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 80px; font-weight: 700; color: var(--gold);
+    line-height: 1; letter-spacing: -0.04em;
+    transition: transform 0.3s ease;
+  }
+  .service-row:hover .service-num { transform: scale(1.05); }
+
+  .service-content {
+    padding: 40px 0 40px 48px;
+    border-left: 1px solid var(--border);
+  }
+  .service-tag {
+    display: inline-block; margin-bottom: 12px;
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid rgba(184,134,11,0.3);
+    padding: 4px 10px; border-radius: 2px;
+  }
+  .service-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; font-weight: 700; color: var(--ink);
+    line-height: 1.15; margin-bottom: 12px; letter-spacing: -0.01em;
+  }
+  .service-desc {
+    font-size: 14px; font-weight: 300; line-height: 1.8; color: var(--muted);
+    max-width: 480px;
+  }
+  .scroll-reveal { opacity: 1; }
+  .service-row {
+    opacity: 0; transform: translateY(28px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .service-row.row-visible {
+    opacity: 1; transform: translateY(0);
+  }
+  .service-row.row-hidden {
+    opacity: 0; transform: translateY(28px);
+  }
+
+  @media (max-width: 600px) {
+    .service-row { grid-template-columns: 80px 1fr; min-height: auto; }
+    .service-num { font-size: 52px; }
+    .service-content { padding: 28px 0 28px 24px; }
+    .service-num-col { padding: 28px 0; }
+  }
+
+  /* ── GLOBAL SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal.hidden {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  .reveal-left {
+    opacity: 0;
+    transform: translateX(-32px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+  }
+  .reveal-left.visible { opacity: 1; transform: translateX(0); }
+  .reveal-left.hidden  { opacity: 0; transform: translateX(-32px); }
+  .reveal-right {
+    opacity: 0;
+    transform: translateX(32px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+  }
+  .reveal-right.visible { opacity: 1; transform: translateX(0); }
+  .reveal-right.hidden  { opacity: 0; transform: translateX(32px); }
+  .signup-section {
+    max-width: 560px; margin: 0 auto; padding: 100px 48px;
+    text-align: center;
+  }
+  .signup-form {
+    background: var(--ink); border-radius: 4px;
+    padding: 48px 40px; margin-top: 40px; text-align: left;
+  }
+  .form-row { margin-bottom: 20px; }
+  .form-label {
+    display: block; font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(244,240,232,0.5);
+    margin-bottom: 8px;
+  }
+  .form-input {
+    width: 100%; padding: 12px 16px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius); color: var(--sand);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--gold); }
+  .form-input::placeholder { color: rgba(244,240,232,0.25); }
+  .form-select {
+    width: 100%; padding: 12px 16px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius); color: var(--sand);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; cursor: pointer;
+    appearance: none;
+  }
+  .form-select option { background: #1a1814; color: var(--sand); }
+  .form-divider {
+    height: 1px; background: rgba(255,255,255,0.08);
+    margin: 28px 0;
+  }
+  .btn-submit {
+    width: 100%; padding: 15px;
+    background: var(--gold); color: var(--ink);
+    border: none; border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500; letter-spacing: 0.04em;
+    cursor: pointer; transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-submit:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .form-note {
+    text-align: center; margin-top: 16px;
+    font-size: 11px; color: rgba(244,240,232,0.3);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── DASHBOARD ── */
+  #page-dashboard {
+    display: none;
+    background: var(--sand);
+    min-height: 100vh;
+  }
+  #page-dashboard.active { display: block; }
+
+  .dash-header {
+    max-width: 1100px; margin: 0 auto;
+    padding: 48px 48px 0;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 32px;
+  }
+  .dash-welcome-label {
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 8px;
+  }
+  .dash-welcome-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px; font-weight: 600; line-height: 1;
+  }
+  .dash-welcome-biz {
+    font-size: 14px; color: var(--muted); margin-top: 6px; font-weight: 300;
+  }
+  .dash-status-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 20px;
+    border: 1px solid var(--border); border-radius: 40px;
+    font-size: 12px; font-weight: 400; color: var(--muted);
+  }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #639922; flex-shrink: 0;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+  }
+
+  .dash-body {
+    max-width: 1100px; margin: 0 auto;
+    padding: 48px;
+    display: grid; grid-template-columns: 1fr 340px; gap: 32px;
+  }
+
+  .dash-main { display: flex; flex-direction: column; gap: 24px; }
+
+  .dash-card {
+    background: white; border-radius: 4px;
+    border: 1px solid var(--border); padding: 32px;
+  }
+  .dash-card-label {
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 20px;
+  }
+
+  .checklist { display: flex; flex-direction: column; gap: 0; }
+  .check-item {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(26,24,20,0.06);
+    transition: all 0.2s;
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-box {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.3s; cursor: pointer;
+    font-size: 11px;
+  }
+  .check-box.done {
+    background: var(--ink); border-color: var(--ink); color: var(--sand);
+  }
+  .check-box.active {
+    border-color: var(--gold); background: rgba(184,134,11,0.08);
+    color: var(--gold);
+  }
+  .check-text { flex: 1; }
+  .check-name {
+    font-size: 14px; font-weight: 500; margin-bottom: 2px;
+  }
+  .check-name.done-text { color: var(--muted); text-decoration: line-through; }
+  .check-desc { font-size: 12px; color: var(--muted); font-weight: 300; }
+  .check-badge {
+    font-size: 10px; padding: 3px 10px; border-radius: 20px;
+    letter-spacing: 0.04em; white-space: nowrap;
+  }
+  .badge-done { background: #EAF3DE; color: #3B6D11; }
+  .badge-active { background: rgba(184,134,11,0.12); color: var(--gold); }
+  .badge-soon { background: rgba(26,24,20,0.05); color: var(--muted); }
+
+  .progress-bar-wrap {
+    background: rgba(26,24,20,0.07); border-radius: 2px;
+    height: 4px; margin-top: 20px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; background: var(--gold);
+    border-radius: 2px; width: 14%;
+    transition: width 0.6s ease;
+  }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--muted); margin-top: 8px;
+  }
+
+  .dash-side { display: flex; flex-direction: column; gap: 24px; }
+
+  .next-step-card {
+    background: var(--ink); color: var(--sand);
+    border-radius: 4px; padding: 28px;
+  }
+  .next-label {
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--gold-light); margin-bottom: 16px;
+  }
+  .next-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 600; line-height: 1.2;
+    margin-bottom: 10px;
+  }
+  .next-desc {
+    font-size: 13px; font-weight: 300; line-height: 1.6;
+    color: rgba(244,240,232,0.6); margin-bottom: 24px;
+  }
+  .next-btn {
+    display: block; width: 100%; padding: 12px;
+    background: var(--gold); color: var(--ink);
+    border: none; border-radius: var(--radius);
+    font-size: 13px; font-weight: 500; letter-spacing: 0.04em;
+    text-transform: uppercase; cursor: pointer; text-align: center;
+    transition: all 0.2s; text-decoration: none;
+  }
+  .next-btn:hover { background: var(--gold-light); }
+
+  .info-card { background: white; border: 1px solid var(--border); border-radius: 4px; padding: 24px; }
+  .info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid rgba(26,24,20,0.06);
+    font-size: 13px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-key { color: var(--muted); font-weight: 300; }
+  .info-val { font-weight: 500; font-size: 13px; }
+
+  .postcard-alert {
+    background: rgba(184,134,11,0.08);
+    border: 1px solid rgba(184,134,11,0.25);
+    border-radius: 4px; padding: 20px;
+  }
+  .postcard-title {
+    font-size: 13px; font-weight: 500; color: var(--rust);
+    margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+  }
+  .postcard-body {
+    font-size: 12px; font-weight: 300; line-height: 1.6; color: var(--muted);
+  }
+
+
+  .form-section-label {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--gold-light);
+    margin-bottom: 16px; margin-top: 4px;
+  }
+  .req { color: var(--gold); font-size: 12px; }
+  .opt { color: rgba(244,240,232,0.3); font-size: 10px; letter-spacing: 0.04em; text-transform: none; }
+
+  .checkbox-group { display: flex; flex-direction: column; gap: 10px; }
+  .check-label {
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; font-size: 14px; font-weight: 300;
+    color: rgba(244,240,232,0.85); line-height: 1.4;
+    user-select: none;
+  }
+  .check-label input[type="checkbox"],
+  .check-label input[type="radio"] { display: none; }
+  .check-box-custom {
+    width: 18px; height: 18px; border-radius: 3px; flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; position: relative;
+  }
+  .check-box-custom.radio { border-radius: 50%; }
+  .check-label input[type="checkbox"]:checked + .check-box-custom,
+  .check-label input[type="radio"]:checked + .check-box-custom {
+    background: var(--gold); border-color: var(--gold);
+  }
+  .check-label input[type="checkbox"]:checked + .check-box-custom::after {
+    content: ''; position: absolute;
+    width: 5px; height: 9px;
+    border: 2px solid var(--ink); border-top: none; border-left: none;
+    transform: rotate(45deg); top: 1px;
+  }
+  .check-label input[type="radio"]:checked + .check-box-custom::after {
+    content: ''; position: absolute;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--ink);
+  }
+  .signup-section { max-width: 620px; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink); color: var(--sand);
+    padding: 48px; text-align: center;
+    margin-top: 80px;
+  }
+  .footer-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px; font-weight: 600; margin-bottom: 8px;
+  }
+  .footer-logo span { color: var(--gold); }
+  .footer-tag { font-size: 12px; color: rgba(244,240,232,0.4); letter-spacing: 0.08em; }
+  .footer-links {
+    display: flex; align-items: center; justify-content: center; gap: 24px;
+    margin-top: 20px; flex-wrap: wrap;
+  }
+  .footer-links a {
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(244,240,232,0.3); text-decoration: none;
+    transition: color 0.2s; cursor: pointer;
+  }
+  .footer-links a:hover { color: rgba(244,240,232,0.7); }
+  .footer-divider {
+    width: 3px; height: 3px; border-radius: 50%;
+    background: rgba(244,240,232,0.15);
+  }
+
+  /* ── POLICY MODAL ── */
+  .policy-overlay {
+    display: none; position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,0.75);
+    align-items: flex-end; justify-content: center;
+    padding: 0;
+  }
+  .policy-overlay.open { display: flex; }
+  .policy-modal {
+    background: var(--sand); width: 100%; max-width: 720px;
+    max-height: 88vh; border-radius: 12px 12px 0 0;
+    overflow: hidden; display: flex; flex-direction: column;
+    box-shadow: 0 -8px 48px rgba(0,0,0,0.3);
+  }
+  .policy-modal-header {
+    padding: 20px 28px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0; background: var(--sand);
+  }
+  .policy-modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 700; color: var(--ink);
+  }
+  .policy-modal-close {
+    background: none; border: none; font-size: 24px;
+    color: var(--muted); cursor: pointer; padding: 0;
+    line-height: 1; transition: color 0.2s;
+  }
+  .policy-modal-close:hover { color: var(--ink); }
+  .policy-modal-body {
+    overflow-y: auto; padding: 28px 28px 48px;
+    flex: 1;
+  }
+  .policy-modal-body h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px; font-weight: 700; color: var(--ink);
+    margin: 24px 0 8px; letter-spacing: 0.01em;
+  }
+  .policy-modal-body h3:first-child { margin-top: 0; }
+  .policy-modal-body p {
+    font-size: 13px; font-weight: 300; color: var(--muted);
+    line-height: 1.8; margin-bottom: 12px;
+  }
+  .policy-modal-body ul {
+    margin: 0 0 12px 18px;
+  }
+  .policy-modal-body ul li {
+    font-size: 13px; font-weight: 300; color: var(--muted);
+    line-height: 1.8; margin-bottom: 4px;
+  }
+  .policy-effective {
+    font-size: 11px; color: var(--muted); letter-spacing: 0.06em;
+    text-transform: uppercase; margin-bottom: 20px; opacity: 0.6;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.5s ease both; }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; padding: 40px 24px; gap: 40px; }
+    .hero-left { padding-right: 0; }
+    .about-section { grid-template-columns: 1fr; padding: 60px 24px; gap: 40px; }
+    .services-section { padding: 60px 24px; }
+    .signup-section { padding: 60px 24px; }
+    .dash-body { grid-template-columns: 1fr; padding: 24px; }
+    .dash-header { padding: 32px 24px; flex-direction: column; align-items: flex-start; gap: 16px; }
+  }
+  /* ── FLOATING CTA BAR ── */
+  .float-cta {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    z-index: 200;
+    background: var(--ink);
+    border: 1px solid rgba(184,134,11,0.4);
+    border-radius: 60px;
+    padding: 14px 28px 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+    opacity: 0;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .float-cta.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .float-cta-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gold-light);
+    animation: ctapulse 2s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes ctapulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+  .float-cta-text {
+    font-size: 13px; font-weight: 400;
+    color: rgba(244,240,232,0.7);
+    letter-spacing: 0.01em;
+  }
+  .float-cta-text strong {
+    color: var(--sand); font-weight: 600;
+  }
+  .float-cta-btn {
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    border-radius: 40px;
+    padding: 9px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.01em;
+  }
+  .float-cta-btn:hover { background: var(--gold-light); }
+  .float-cta-close {
+    background: none; border: none;
+    color: rgba(244,240,232,0.3);
+    font-size: 18px; cursor: pointer;
+    padding: 0 0 0 4px; line-height: 1;
+    transition: color 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .float-cta-close:hover { color: rgba(244,240,232,0.7); }
+</style>
+</head>
+<body>
+
+<!-- FLOATING CTA -->
+<div class="float-cta" id="float-cta">
+  <div class="float-cta-dot"></div>
+  <div class="float-cta-text"><strong>Free.</strong> No contract. Yours to keep.</div>
+  <button class="float-cta-btn" onclick="showPage('signup'); hideFloatCta();">Claim Your Free Profile</button>
+  <button class="float-cta-close" onclick="dismissFloatCta()" title="Dismiss">×</button>
+</div>
+
+<nav>
+  <a class="nav-logo" href="#" onclick="showPage('home')">Vértex<span>.</span>Local</a>
+  <div class="nav-links">
+    <a href="#" onclick="showPage('home')">Home</a>
+    <a href="#" onclick="showPage('home'); setTimeout(()=>scrollToSection('about'),100)">About</a>
+    <a href="#" onclick="showPage('home'); setTimeout(()=>scrollToSection('services'),100)">Services</a>
+    <a href="#" onclick="showPage('signup')" class="nav-cta">Get Started</a>
+  </div>
+</nav>
+
+<!-- ═══════════════ HOME PAGE ═══════════════ -->
+<div id="page-home" class="page active">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-left fade-up reveal-left">
+      <div class="hero-eyebrow">Local Visibility Consultant</div>
+      <h1 class="hero-headline">
+        The point where<br>your business<br><em>starts to be found.</em>
+      </h1>
+      <p class="hero-sub">
+        You run a real business off a Texas service road. Your customers are searching Google right now. They are finding your competitor — not you. We fix that. Free. Today.
+      </p>
+      <div class="hero-actions">
+        <a href="#" class="btn-primary" onclick="showPage('signup')">Claim your free profile</a>
+        <a href="#" class="btn-secondary" onclick="scrollToSection('about')">See how it works</a>
+      </div>
+    </div>
+    <div class="hero-right fade-up delay-2 reveal-right">
+      <div class="hero-card-label">What we build for you</div>
+      <div class="hero-stat-row">
+        <div class="hero-stat">
+          <div class="stat-icon">📍</div>
+          <div class="stat-info">
+            <div class="stat-label">Google Maps listing</div>
+            <div class="stat-value">Show up in local search</div>
+          </div>
+          <span class="stat-badge">Free</span>
+        </div>
+        <div class="hero-stat">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-info">
+            <div class="stat-label">Review profile</div>
+            <div class="stat-value">Build trust before they call</div>
+          </div>
+          <span class="stat-badge">Free</span>
+        </div>
+        <div class="hero-stat">
+          <div class="stat-icon">🌐</div>
+          <div class="stat-info">
+            <div class="stat-label">Business website</div>
+            <div class="stat-value">Your address on the internet</div>
+          </div>
+          <span class="stat-badge">Free</span>
+        </div>
+        <div class="hero-stat">
+          <div class="stat-icon">📊</div>
+          <div class="stat-info">
+            <div class="stat-label">Monthly insights</div>
+            <div class="stat-value">See who searched for you</div>
+          </div>
+          <span class="stat-badge">Free</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" style="background: var(--warm); border-top: 1px solid var(--border);">
+    <div class="about-section">
+      <div class="reveal-left">
+        <div class="section-label">About Vértex Local</div>
+        <h2 class="section-title">The corridor between invisible and found.</h2>
+        <p class="section-body" style="margin-bottom:20px;">
+          Hundreds of skilled tradespeople operate out of metal buildings along IH-20 between Wills Point and Lindale. Welders. Mechanics. Fabricators. Body shops. Mobile repair. Real businesses built on real work.
+        </p>
+        <p class="section-body" style="margin-bottom:20px;">
+          None of them show up on Google. Every day, customers search for exactly what they offer — and find someone else.
+        </p>
+        <p class="section-body">
+          Vértex Local is a single Local Visibility Consultant who drives that corridor, walks in the door, and builds the digital presence these businesses deserve — at no cost to the owner.
+        </p>
+      </div>
+      <div class="role-card reveal-right">
+        <div class="role-title">Your Consultant</div>
+        <div class="role-sub">Local Visibility Consultant · IH-20 Corridor</div>
+        <ul class="role-list">
+          <li>Builds your Google Business Profile on the spot</li>
+          <li>Sets up your free business website same day</li>
+          <li>Handles Google verification when the postcard arrives</li>
+          <li>Manages your profile so leads keep coming</li>
+          <li>Shows you monthly how many people found you</li>
+          <li>No contracts. You own everything. Cancel any time.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services" class="services-section">
+    <div class="services-inner">
+      <div class="services-header reveal">
+        <div class="section-label" style="justify-content:center;">What gets built</div>
+        <h2 class="section-title" style="font-weight:900; color:#ffffff; letter-spacing:-0.02em;">Seven things. All free. All yours.</h2>
+      </div>
+      <div class="services-list">
+
+        <div class="service-row">
+          <div class="service-num-col scroll-reveal"><div class="service-num">01</div></div>
+          <div class="service-content">
+            <span class="service-tag">Core</span>
+            <div class="service-name">Google Maps Listing</div>
+            <div class="service-desc">Your business appears when someone nearby searches for what you do. Name, address, phone, hours — all visible instantly.</div>
+          </div>
+        </div>
+
+        <div class="service-row">
+          <div class="service-num-col scroll-reveal"><div class="service-num">02</div></div>
+          <div class="service-content">
+            <span class="service-tag">Core</span>
+            <div class="service-name">Verified Business Profile</div>
+            <div class="service-desc">Google confirms you are a real, operating business. That checkmark builds trust before a single word is spoken.</div>
+          </div>
+        </div>
+
+        <div class="service-row">
+          <div class="service-num-col scroll-reveal"><div class="service-num">03</div></div>
+          <div class="service-content">
+            <span class="service-tag">Trust</span>
+            <div class="service-name">Photo Gallery</div>
+            <div class="service-desc">Photos of your work, your shop, your team. Customers decide before they call — give them something to see.</div>
+          </div>
+        </div>
+
+        <div class="service-row">
+          <div class="service-num-col scroll-reveal"><div class="service-num">04</div></div>
+          <div class="service-content">
+            <span class="service-tag">Visibility</span>
+            <div class="service-name">Free Business Website</div>
+            <div class="service-desc">A clean, simple page with your services, contact info, and location. Your permanent address on the internet.</div>
+          </div>
+        </div>
+
+        <div class="service-row">
+          <div class="service-num-col scroll-reveal"><div class="service-num">05</div></div>
+          <div class="service-content">
+            <span class="service-tag">Leads</span>
+            <div class="service-name">Hours &amp; Contact Visible</div>
+            <div class="service-desc">People can see when you are open and call you directly from search. Removes every barrier between a search and a call.</div>
+          </div>
+        </div>
+
+        <div class="service-row">
+          <div class="service-num-col scroll-reveal"><div class="service-num">06</div></div>
+          <div class="service-content">
+            <span class="service-tag">Trust</span>
+            <div class="service-name">Customer Reviews</div>
+            <div class="service-desc">A place for your real customers to leave reviews. Social proof that works 24 hours a day without you doing anything.</div>
+          </div>
+        </div>
+
+        <div class="service-row">
+          <div class="service-num-col scroll-reveal"><div class="service-num">07</div></div>
+          <div class="service-content">
+            <span class="service-tag">Community</span>
+            <div class="service-name">Vértex Local Directory Listing</div>
+            <div class="service-desc">Your business is listed in the Vértex Local verified directory — seen by East Texas residents actively looking for trusted local services, including the Senior Resource Network.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer class="reveal">
+    <div class="footer-logo">Vértex<span>.</span>Local</div>
+    <div class="footer-tag">The Point Where It All Starts · IH-20 Corridor · Texas</div>
+    <div class="footer-links">
+      <a onclick="openPolicy('privacy')">Privacy Policy</a>
+      <div class="footer-divider"></div>
+      <a onclick="openPolicy('terms')">Terms of Service</a>
+      <div class="footer-divider"></div>
+      <span style="font-size:11px;color:rgba(244,240,232,0.2);letter-spacing:0.06em;">© 2026 Vertex Local LLC</span>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ═══════════════ SIGNUP PAGE ═══════════════ -->
+<div id="page-signup" class="page">
+  <div class="signup-section">
+    <div class="section-label" style="justify-content:center;">Get started</div>
+    <h2 class="section-title">Claim your spot on Google.</h2>
+    <p class="section-body" style="text-align:center; margin-top:12px;">
+      No cost. No contract. Takes 3 minutes.
+    </p>
+    <div class="signup-form">
+
+      <!-- SECTION 1 -->
+      <div class="form-section-label">&#9312; Owner Information</div>
+      <div class="form-row">
+        <label class="form-label">Business owner name <span class="req">*</span></label>
+        <input id="f-name" class="form-input" type="text" placeholder="Your full name" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Business name <span class="req">*</span></label>
+        <input id="f-biz" class="form-input" type="text" placeholder="Exact name as it appears on your sign" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Phone number <span class="req">*</span></label>
+        <input id="f-phone" class="form-input" type="tel" placeholder="(903) 000-0000" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Business email <span class="opt">&#8212; optional</span></label>
+        <input id="f-email" class="form-input" type="email" placeholder="yourshop@gmail.com" />
+      </div>
+
+      <div class="form-divider"></div>
+
+      <!-- SECTION 2 -->
+      <div class="form-section-label">&#9313; Business Type &amp; Location</div>
+      <div class="form-row">
+        <label class="form-label">Primary trade / category <span class="req">*</span></label>
+        <select id="f-type" class="form-select">
+          <option value="">Select your trade</option>
+          <option>Welding / Fabrication</option>
+          <option>Auto Repair / Mechanic</option>
+          <option>Auto Body / Paint</option>
+          <option>Mobile Repair</option>
+          <option>Trailer Sales / Repair</option>
+          <option>HVAC / Plumbing / Electric</option>
+          <option>Trucking / Hauling</option>
+          <option>Landscaping / Lawn Care</option>
+          <option>Towing Service</option>
+          <option>Equipment Repair</option>
+          <option>Other Trade</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">How do you serve customers? <span class="req">*</span></label>
+        <div class="checkbox-group">
+          <label class="check-label">
+            <input type="checkbox" id="f-loc" onchange="toggleServiceArea()" />
+            <span class="check-box-custom"></span>
+            Customers come to my shop / location
+          </label>
+          <label class="check-label">
+            <input type="checkbox" id="f-mobile" onchange="toggleServiceArea()" />
+            <span class="check-box-custom"></span>
+            I go to the customer (mobile / on-site)
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Business address <span class="req">*</span></label>
+        <input id="f-addr" class="form-input" type="text" placeholder="Street address, City, TX, ZIP" />
+      </div>
+
+      <div class="form-row" id="f-area-row" style="display:none;">
+        <label class="form-label">Service area <span class="opt">&#8212; mobile only</span></label>
+        <input id="f-area" class="form-input" type="text" placeholder="e.g. Wills Point, Canton, Lindale or 30 mile radius" />
+      </div>
+
+      <div class="form-divider"></div>
+
+      <!-- SECTION 3 -->
+      <div class="form-section-label">&#9314; Website</div>
+      <div class="form-row">
+        <label class="form-label">Do you already have a website?</label>
+        <div class="checkbox-group">
+          <label class="check-label">
+            <input type="radio" name="f-web-choice" id="f-web-yes" value="yes" onchange="toggleWebsite()" />
+            <span class="check-box-custom radio"></span>
+            Yes &#8212; I have one already
+          </label>
+          <label class="check-label">
+            <input type="radio" name="f-web-choice" id="f-web-no" value="no" onchange="toggleWebsite()" checked />
+            <span class="check-box-custom radio"></span>
+            No &#8212; I need one built
+          </label>
+        </div>
+      </div>
+      <div class="form-row" id="f-web-row" style="display:none;">
+        <label class="form-label">Current website URL</label>
+        <input id="f-website" class="form-input" type="url" placeholder="https://yoursite.com" />
+      </div>
+
+      <div class="form-divider"></div>
+
+      <!-- SECTION 4 -->
+      <div class="form-section-label">&#9315; Business Hours</div>
+
+      <div style="margin-bottom:16px;">
+        <div class="form-label" style="margin-bottom:10px;">Monday &#8211; Friday</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label class="form-label" style="font-size:10px; margin-bottom:6px;">Opens</label>
+            <select id="f-wk-open" class="form-select">
+              <option value="">Closed</option>
+              <option>5:00 AM</option><option>5:30 AM</option>
+              <option>6:00 AM</option><option>6:30 AM</option>
+              <option>7:00 AM</option><option>7:30 AM</option>
+              <option selected>8:00 AM</option><option>8:30 AM</option>
+              <option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size:10px; margin-bottom:6px;">Closes</label>
+            <select id="f-wk-close" class="form-select">
+              <option value="">Closed</option>
+              <option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option>
+              <option>3:00 PM</option><option>4:00 PM</option>
+              <option selected>5:00 PM</option><option>5:30 PM</option>
+              <option>6:00 PM</option><option>7:00 PM</option><option>8:00 PM</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="form-label" style="margin-bottom:10px;">Saturday</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label class="form-label" style="font-size:10px; margin-bottom:6px;">Opens</label>
+            <select id="f-sat-open" class="form-select">
+              <option value="" selected>Closed</option>
+              <option>6:00 AM</option><option>7:00 AM</option>
+              <option>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size:10px; margin-bottom:6px;">Closes</label>
+            <select id="f-sat-close" class="form-select">
+              <option value="" selected>Closed</option>
+              <option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option>
+              <option>3:00 PM</option><option>4:00 PM</option><option>5:00 PM</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="form-label" style="margin-bottom:10px;">Sunday</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label class="form-label" style="font-size:10px; margin-bottom:6px;">Opens</label>
+            <select id="f-sun-open" class="form-select">
+              <option value="" selected>Closed</option>
+              <option>8:00 AM</option><option>9:00 AM</option>
+              <option>10:00 AM</option><option>11:00 AM</option><option>12:00 PM</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size:10px; margin-bottom:6px;">Closes</label>
+            <select id="f-sun-close" class="form-select">
+              <option value="" selected>Closed</option>
+              <option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option>
+              <option>3:00 PM</option><option>4:00 PM</option><option>5:00 PM</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-divider"></div>
+
+      <!-- SECTION 5 -->
+      <div class="form-section-label">&#9316; Social Media <span class="opt" style="text-transform:none; letter-spacing:0;">&#8212; optional</span></div>
+      <div class="form-row">
+        <label class="form-label">Facebook page URL</label>
+        <input id="f-fb" class="form-input" type="url" placeholder="facebook.com/yourshop" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Instagram handle</label>
+        <input id="f-ig" class="form-input" type="text" placeholder="@yourshop" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">TikTok handle</label>
+        <input id="f-tt" class="form-input" type="text" placeholder="@yourshop" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Other <span class="opt">&#8212; YouTube, X, LinkedIn, etc.</span></label>
+        <input id="f-other-social" class="form-input" type="text" placeholder="Platform name and URL or handle" />
+      </div>
+
+      <div class="form-divider"></div>
+
+      <!-- SECTION 6: SERVICE AGREEMENT -->
+      <div class="form-section-label">&#9317; Service Agreement</div>
+
+      <p style="font-size:13px; font-weight:500; color:rgba(244,240,232,0.9); margin-bottom:16px; letter-spacing:0.01em;">Your information is never sold or shared with any third party &mdash; ever.</p>
+
+      <div style="border:1px solid rgba(184,134,11,0.35); border-radius:4px; background:rgba(184,134,11,0.06); margin-bottom:24px; overflow:hidden;">
+
+        <div style="padding:14px 20px; border-bottom:1px solid rgba(184,134,11,0.2); display:flex; align-items:center; gap:10px;">
+          <span style="color:var(--gold-light); font-size:12px;">&#9632;</span>
+          <span style="font-size:10px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold-light);">V&eacute;rtex Local &mdash; Authorization &amp; Service Agreement</span>
+        </div>
+
+        <div style="padding:20px; display:flex; flex-direction:column; gap:0;">
+
+          <div style="display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+            <span style="color:var(--gold); font-size:11px; font-weight:500; letter-spacing:0.06em; flex-shrink:0; margin-top:1px; min-width:18px;">01</span>
+            <div>
+              <div style="font-size:12px; font-weight:500; color:rgba(244,240,232,0.9); margin-bottom:4px;">Authorization to Act</div>
+              <div style="font-size:12px; font-weight:300; color:rgba(244,240,232,0.5); line-height:1.75;">I authorize V&eacute;rtex Local to create, set up, and manage a Google Business Profile on my behalf using the information I have provided. I confirm I am the owner or an authorized representative of this business.</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+            <span style="color:var(--gold); font-size:11px; font-weight:500; letter-spacing:0.06em; flex-shrink:0; margin-top:1px; min-width:18px;">02</span>
+            <div>
+              <div style="font-size:12px; font-weight:500; color:rgba(244,240,232,0.9); margin-bottom:4px;">No Cost. No Contract.</div>
+              <div style="font-size:12px; font-weight:300; color:rgba(244,240,232,0.5); line-height:1.75;">This service is completely free. There is no setup fee, no monthly obligation, and no contract of any kind. I will not be charged for any work completed under this agreement.</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+            <span style="color:var(--gold); font-size:11px; font-weight:500; letter-spacing:0.06em; flex-shrink:0; margin-top:1px; min-width:18px;">03</span>
+            <div>
+              <div style="font-size:12px; font-weight:500; color:rgba(244,240,232,0.9); margin-bottom:4px;">I Own the Profile</div>
+              <div style="font-size:12px; font-weight:300; color:rgba(244,240,232,0.5); line-height:1.75;">The Google Business Profile created belongs to me and my business. I will be added as the primary owner. V&eacute;rtex Local will be listed as a manager only. I may remove that access at any time without explanation.</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+            <span style="color:var(--gold); font-size:11px; font-weight:500; letter-spacing:0.06em; flex-shrink:0; margin-top:1px; min-width:18px;">04</span>
+            <div>
+              <div style="font-size:12px; font-weight:500; color:rgba(244,240,232,0.9); margin-bottom:4px;">Verification Postcard</div>
+              <div style="font-size:12px; font-weight:300; color:rgba(244,240,232,0.5); line-height:1.75;">I understand Google will mail a verification postcard to my business address within 5&ndash;14 days. When it arrives, I will contact V&eacute;rtex Local with the code printed on it so my profile can be activated and appear live on Google Search and Maps.</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+            <span style="color:var(--gold); font-size:11px; font-weight:500; letter-spacing:0.06em; flex-shrink:0; margin-top:1px; min-width:18px;">05</span>
+            <div>
+              <div style="font-size:12px; font-weight:500; color:rgba(244,240,232,0.9); margin-bottom:4px;">Right to Cancel</div>
+              <div style="font-size:12px; font-weight:300; color:rgba(244,240,232,0.5); line-height:1.75;">I may cancel this arrangement at any time, for any reason, with no fees or penalties. Upon my request, V&eacute;rtex Local will transfer full profile ownership to me and remove itself as manager within 48 hours.</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:14px; align-items:flex-start; padding:14px 0;">
+            <span style="color:var(--gold); font-size:11px; font-weight:500; letter-spacing:0.06em; flex-shrink:0; margin-top:1px; min-width:18px;">06</span>
+            <div>
+              <div style="font-size:12px; font-weight:500; color:rgba(244,240,232,0.9); margin-bottom:4px;">Information Use</div>
+              <div style="font-size:12px; font-weight:300; color:rgba(244,240,232,0.5); line-height:1.75;">The business information I have provided will be used only to build and maintain my Google Business Profile and V&eacute;rtex Local directory listing. It will not be sold, shared with third parties, or used for any other purpose.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div style="padding:14px 20px; border-top:1px solid rgba(184,134,11,0.2); background:rgba(184,134,11,0.05); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+          <span style="font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(244,240,232,0.25);">V&eacute;rtex Local &middot; IH-20 Corridor &middot; East Texas</span>
+          <span id="agree-timestamp" style="font-size:10px; color:rgba(244,240,232,0.2); font-style:italic;"></span>
+        </div>
+
+      </div>
+
+      <p style="font-size:13px; font-weight:500; color:rgba(244,240,232,0.9); margin-bottom:14px; letter-spacing:0.01em;">We do not sell, trade, or share your information with anyone.</p>
+      <label class="check-label" style="margin-bottom:28px; align-items:flex-start; padding:14px 16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:4px;">
+        <input type="checkbox" id="f-agree" onchange="stampTimestamp()" />
+        <span class="check-box-custom" style="margin-top:2px;"></span>
+        <span style="font-size:12px; color:rgba(244,240,232,0.8); line-height:1.65;">I have read all six terms above. I am the owner or authorized representative of this business, and I authorize V&eacute;rtex Local to proceed under this agreement.</span>
+      </label>
+
+      <div class="form-divider"></div>
+      <p style="font-size:10px; color:rgba(244,240,232,0.25); margin-bottom:20px; line-height:1.6; text-align:center; letter-spacing:0.05em; text-transform:uppercase;">
+        Fields marked <span style="color:var(--gold);">*</span> required &nbsp;&middot;&nbsp; All other fields strengthen your Google profile
+      </p>
+
+      <p style="font-size:13px; font-weight:500; color:rgba(244,240,232,0.9); text-align:center; margin-bottom:14px; letter-spacing:0.01em;">No third parties. No spam. No surprises.</p>
+      <button class="btn-submit" onclick="handleSignup()">I authorize &mdash; build my profile</button>
+      <div class="form-note">Google will mail a verification postcard to your address &middot; 5&ndash;14 days</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DASHBOARD PAGE ═══════════════ -->
+<div id="page-dashboard" class="page">
+
+  <div class="dash-header">
+    <div>
+      <div class="dash-welcome-label">Welcome to Vértex Local</div>
+      <div class="dash-welcome-name" id="dash-name">Your Business</div>
+      <div class="dash-welcome-biz" id="dash-biz">Local Visibility Dashboard</div>
+    </div>
+    <div class="dash-status-pill">
+      <div class="status-dot"></div>
+      Profile being built
+    </div>
+  </div>
+
+  <div class="dash-body">
+
+    <div class="dash-main">
+
+      <!-- CHECKLIST -->
+      <div class="dash-card">
+        <div class="dash-card-label">Your 7-item build checklist</div>
+        <div class="checklist">
+          <div class="check-item">
+            <div class="check-box done">✓</div>
+            <div class="check-text">
+              <div class="check-name done-text">Authorization signed</div>
+              <div class="check-desc">You gave us permission to build your profile</div>
+            </div>
+            <span class="check-badge badge-done">Done</span>
+          </div>
+          <div class="check-item">
+            <div class="check-box active">→</div>
+            <div class="check-text">
+              <div class="check-name">Google Business Profile created</div>
+              <div class="check-desc">Your listing is being built on Google Maps</div>
+            </div>
+            <span class="check-badge badge-active">In progress</span>
+          </div>
+          <div class="check-item">
+            <div class="check-box"></div>
+            <div class="check-text">
+              <div class="check-name">Verification postcard sent</div>
+              <div class="check-desc">Google mails a code to your address · 5–14 days</div>
+            </div>
+            <span class="check-badge badge-soon">Pending</span>
+          </div>
+          <div class="check-item">
+            <div class="check-box"></div>
+            <div class="check-text">
+              <div class="check-name">Profile verified &amp; live</div>
+              <div class="check-desc">You appear in Google Search and Maps</div>
+            </div>
+            <span class="check-badge badge-soon">Pending</span>
+          </div>
+          <div class="check-item">
+            <div class="check-box"></div>
+            <div class="check-text">
+              <div class="check-name">Photos uploaded</div>
+              <div class="check-desc">Your shop and work visible to searchers</div>
+            </div>
+            <span class="check-badge badge-soon">Pending</span>
+          </div>
+          <div class="check-item">
+            <div class="check-box"></div>
+            <div class="check-text">
+              <div class="check-name">Free website published</div>
+              <div class="check-desc">Your permanent address on the internet</div>
+            </div>
+            <span class="check-badge badge-soon">Pending</span>
+          </div>
+          <div class="check-item">
+            <div class="check-box"></div>
+            <div class="check-text">
+              <div class="check-name">First monthly report</div>
+              <div class="check-desc">See how many people searched and found you</div>
+            </div>
+            <span class="check-badge badge-soon">Pending</span>
+          </div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-label">
+          <span>1 of 7 complete</span>
+          <span id="progress-pct">14%</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="dash-side">
+
+      <!-- NEXT STEP -->
+      <div class="next-step-card">
+        <div class="next-label">Your next step</div>
+        <div class="next-title">Watch for the postcard</div>
+        <div class="next-desc">Google will mail a verification card to your business address in the next 5–14 days. When it arrives, call or text us with the 6-digit code on the front.</div>
+        <a href="tel:+19038738740" class="next-btn">Call us when it arrives</a>
+      </div>
+
+      <!-- POSTCARD ALERT -->
+      <div class="postcard-alert">
+        <div class="postcard-title">
+          <span>📬</span> What to watch for
+        </div>
+        <div class="postcard-body">
+          A white envelope from Google LLC will arrive at your address. Inside is a postcard with a 6-digit code. Do not throw it away — that code makes your profile go live.
+        </div>
+      </div>
+
+      <!-- BUSINESS INFO -->
+      <div class="info-card">
+        <div class="dash-card-label" style="margin-bottom:0; padding-bottom:12px; border-bottom: 1px solid var(--border);">Your profile info</div>
+        <div class="info-row">
+          <span class="info-key">Owner</span>
+          <span class="info-val" id="d-name">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Business</span>
+          <span class="info-val" id="d-biz">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Trade</span>
+          <span class="info-val" id="d-type">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Address</span>
+          <span class="info-val" id="d-addr" style="font-size:11px; text-align:right; max-width:180px;">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Email</span>
+          <span class="info-val" id="d-email" style="font-size:11px;">—</span>
+        </div>
+        <div class="info-row" style="align-items:flex-start; padding-top:12px;">
+          <span class="info-key">Hours</span>
+          <span class="info-val" id="d-hours" style="font-size:11px; text-align:right; max-width:190px; line-height:1.7;">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Website</span>
+          <span class="info-val" id="d-web" style="font-size:11px; text-align:right; max-width:180px;">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Social</span>
+          <span class="info-val" id="d-social" style="font-size:11px; text-align:right; max-width:180px;">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Consultant</span>
+          <span class="info-val" style="color: var(--gold);">Vértex Local</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="reveal">
+    <div class="footer-links">
+      <a onclick="openPolicy('privacy')">Privacy Policy</a>
+      <div class="footer-divider"></div>
+      <a onclick="openPolicy('terms')">Terms of Service</a>
+      <div class="footer-divider"></div>
+      <span style="font-size:11px;color:rgba(244,240,232,0.2);letter-spacing:0.06em;">© 2026 Vertex Local LLC</span>
+    </div>
+    <div class="footer-logo">Vértex<span>.</span>Local</div>
+    <div class="footer-tag">The Point Where It All Starts · IH-20 Corridor · Texas</div>
+  </footer>
+
+</div>
+
+<script>
+function stampTimestamp() {
+  const el = document.getElementById('agree-timestamp');
+  if (!el) return;
+  const checked = document.getElementById('f-agree').checked;
+  if (checked) {
+    const now = new Date();
+    el.textContent = 'Agreed ' + now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) + ' at ' + now.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+  } else {
+    el.textContent = '';
+  }
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+function toggleServiceArea() {
+  const mobile = document.getElementById('f-mobile').checked;
+  document.getElementById('f-area-row').style.display = mobile ? 'block' : 'none';
+}
+
+function toggleWebsite() {
+  const yes = document.getElementById('f-web-yes').checked;
+  document.getElementById('f-web-row').style.display = yes ? 'block' : 'none';
+}
+
+async function handleSignup() {
+  const name    = document.getElementById('f-name').value.trim();
+  const biz     = document.getElementById('f-biz').value.trim();
+  const type    = document.getElementById('f-type').value;
+  const addr    = document.getElementById('f-addr').value.trim();
+  const phone   = document.getElementById('f-phone').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const agreed  = document.getElementById('f-agree').checked;
+  const hasLoc  = document.getElementById('f-loc').checked;
+  const hasMob  = document.getElementById('f-mobile').checked;
+  const area    = document.getElementById('f-area').value.trim();
+  const webYes  = document.getElementById('f-web-yes').checked;
+  const website = document.getElementById('f-website').value.trim();
+  const fb      = document.getElementById('f-fb').value.trim();
+  const ig      = document.getElementById('f-ig').value.trim();
+  const tt      = document.getElementById('f-tt').value.trim();
+  const otherSoc= document.getElementById('f-other-social').value.trim();
+  const wkOpen  = document.getElementById('f-wk-open').value;
+  const wkClose = document.getElementById('f-wk-close').value;
+  const satOpen = document.getElementById('f-sat-open').value;
+  const satClose= document.getElementById('f-sat-close').value;
+  const sunOpen = document.getElementById('f-sun-open').value;
+  const sunClose= document.getElementById('f-sun-close').value;
+
+  if (!name || !biz || !type || !addr || !phone) {
+    alert('Please fill in all required fields marked with *');
+    return;
+  }
+  if (!hasLoc && !hasMob) {
+    alert('Please select how you serve customers.');
+    return;
+  }
+  if (!agreed) {
+    alert('Please check the authorization box before submitting.');
+    return;
+  }
+
+  const serviceType = hasLoc && hasMob ? 'Shop + Mobile' : hasLoc ? 'Shop location' : 'Mobile / On-site';
+  const wkHours  = (wkOpen && wkClose)  ? wkOpen + ' \u2013 ' + wkClose  : 'Closed';
+  const satHours = (satOpen && satClose) ? satOpen + ' \u2013 ' + satClose : 'Closed';
+  const sunHours = (sunOpen && sunClose) ? sunOpen + ' \u2013 ' + sunClose : 'Closed';
+  const hoursStr = 'Mon\u2013Fri: ' + wkHours + ' | Sat: ' + satHours + ' | Sun: ' + sunHours;
+  const webStr   = webYes && website ? website : webYes ? 'Has one \u2014 URL not provided' : 'Needs one built';
+  const socialStr= [fb ? 'FB: '+fb : '', ig ? 'IG: '+ig : '', tt ? 'TT: '+tt : '', otherSoc ? 'Other: '+otherSoc : ''].filter(Boolean).join(' | ') || 'None provided';
+  const agreedAt = document.getElementById('agree-timestamp').textContent || new Date().toLocaleString();
+
+  // ── Submit to Formspree ──
+  const btn = document.querySelector('.btn-submit');
+  btn.textContent = 'Submitting\u2026';
+  btn.disabled = true;
+
+  try {
+    await fetch('https://formspree.io/f/xaqznjbz', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        'Owner Name':        name,
+        'Business Name':     biz,
+        'Phone':             phone,
+        'Email':             email || 'Not provided',
+        'Trade Type':        type,
+        'Service Type':      serviceType,
+        'Address':           addr,
+        'Service Area':      area || 'N/A',
+        'Website':           webStr,
+        'Hours':             hoursStr,
+        'Social Media':      socialStr,
+        'Agreement Signed':  'Yes',
+        'Agreed At':         agreedAt,
+        'Source':            'Vertex Local Capture Page'
+      })
+    });
+  } catch(e) {
+    console.warn('Formspree submit failed:', e);
+  }
+
+  btn.textContent = 'I authorize \u2014 build my profile';
+  btn.disabled = false;
+
+  // ── Update dashboard ──
+  document.getElementById('dash-name').textContent = biz;
+  document.getElementById('dash-biz').textContent  = name + ' \u00b7 ' + type;
+  document.getElementById('d-name').textContent    = name;
+  document.getElementById('d-biz').textContent     = biz;
+  document.getElementById('d-type').textContent    = type + ' \u00b7 ' + serviceType;
+  document.getElementById('d-addr').textContent    = addr + (area ? ' \u00b7 Serves: ' + area : '');
+  document.getElementById('d-email').textContent   = email || 'Not provided';
+  document.getElementById('d-hours').style.whiteSpace = 'pre-line';
+  document.getElementById('d-hours').textContent   = hoursStr.replace(/ \| /g, '\n');
+
+  const webEl = document.getElementById('d-web');
+  if (webEl) webEl.textContent = webStr;
+
+  const socEl = document.getElementById('d-social');
+  if (socEl) socEl.textContent = socialStr;
+
+  showPage('dashboard');
+  setTimeout(() => { document.getElementById('progress-fill').style.width = '14%'; }, 300);
+}
+
+// ── Floating CTA ──
+var ctaDismissed = false;
+var ctaTimer;
+var ctaTriggerCount = 0;
+
+function showFloatCta() {
+  if (ctaDismissed) return;
+  var cta = document.getElementById('float-cta');
+  cta.classList.add('show');
+  clearTimeout(ctaTimer);
+  ctaTimer = setTimeout(function() {
+    cta.classList.remove('show');
+  }, 4500);
+}
+
+function hideFloatCta() {
+  document.getElementById('float-cta').classList.remove('show');
+  clearTimeout(ctaTimer);
+}
+
+function dismissFloatCta() {
+  ctaDismissed = true;
+  hideFloatCta();
+}
+
+// Trigger on section entry
+var ctaTriggers = document.querySelectorAll('#about, #services, .service-row:nth-child(3), .service-row:nth-child(6), footer');
+var ctaObserver = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      ctaTriggerCount++;
+      // Show on every other trigger so it doesn't fire on every single row
+      if (ctaTriggerCount % 2 === 1) {
+        setTimeout(showFloatCta, 600);
+      }
+    }
+  });
+}, { threshold: 0.3 });
+
+ctaTriggers.forEach(function(el) { if (el) ctaObserver.observe(el); });
+
+// ── Global bidirectional scroll reveal ──
+(function() {
+  var allReveal = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .service-row');
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        entry.target.classList.remove('hidden', 'row-hidden');
+        if (entry.target.classList.contains('service-row')) {
+          entry.target.classList.add('row-visible');
+          entry.target.classList.remove('row-hidden');
+        }
+      } else {
+        entry.target.classList.remove('visible', 'row-visible');
+        entry.target.classList.add('hidden');
+        if (entry.target.classList.contains('service-row')) {
+          entry.target.classList.add('row-hidden');
+          entry.target.classList.remove('row-visible');
+        }
+      }
+    });
+  }, { threshold: 0.18 });
+
+  allReveal.forEach(function(el) { observer.observe(el); });
+})();
+</script>
+
+<!-- ═══ PRIVACY POLICY MODAL ═══ -->
+<div class="policy-overlay" id="modal-privacy">
+  <div class="policy-modal">
+    <div class="policy-modal-header">
+      <div class="policy-modal-title">Privacy Policy</div>
+      <button class="policy-modal-close" onclick="closePolicy()">×</button>
+    </div>
+    <div class="policy-modal-body">
+      <p class="policy-effective">Effective Date: June 2026 &nbsp;·&nbsp; Vertex Local LLC &nbsp;·&nbsp; East Texas</p>
+
+      <h3>1. Who We Are</h3>
+      <p>Vertex Local LLC ("Vértex Local," "we," "us," or "our") is a local visibility consulting business operating along the IH-20 corridor in East Texas. This Privacy Policy explains how we collect, use, and protect the information you provide when you submit the business registration form on this website.</p>
+
+      <h3>2. Information We Collect</h3>
+      <p>When you complete and submit the registration form on this site, we collect the following information about your business:</p>
+      <ul>
+        <li>Business owner name</li>
+        <li>Business name</li>
+        <li>Phone number</li>
+        <li>Email address (optional)</li>
+        <li>Business address</li>
+        <li>Trade or service category</li>
+        <li>Business hours</li>
+        <li>Website URL (if applicable)</li>
+        <li>Social media handles (if provided)</li>
+        <li>Service area</li>
+        <li>Date and time of agreement</li>
+      </ul>
+      <p>We do not collect payment information, social security numbers, government identification, or any financial account data through this website.</p>
+
+      <h3>3. How We Use Your Information</h3>
+      <p>The information you provide is used solely for the following purposes:</p>
+      <ul>
+        <li>To create and set up a Google Business Profile on your behalf, as authorized by you</li>
+        <li>To list your business in the Vértex Local verified directory</li>
+        <li>To contact you regarding your profile setup, verification postcard, and ongoing management</li>
+        <li>To maintain an internal record of the authorization you granted</li>
+      </ul>
+      <p>We do not use your information for advertising, marketing to third parties, or any purpose beyond the services you authorized.</p>
+
+      <h3>4. How We Store Your Information</h3>
+      <p>Submissions from this form are transmitted to and stored in a private Google Sheet accessible only to Vertex Local LLC. Form submissions are processed through Formspree, a secure form processing service, solely for the purpose of delivering your data to our internal records. Formspree does not retain, sell, or share your data. Your information is not stored in this website or on any public server.</p>
+
+      <h3>5. We Do Not Sell or Share Your Information</h3>
+      <p>Vertex Local LLC does not sell, rent, trade, or share your personal information or business information with any third party for any commercial purpose. Your information is not shared with advertisers, data brokers, marketing firms, or any outside organization. The only parties who access your submission data are Vertex Local LLC and the internal tools used to deliver it to our records (Formspree, Google Sheets).</p>
+
+      <h3>6. Google Business Profile</h3>
+      <p>By submitting this form you authorize Vertex Local LLC to create a Google Business Profile using your business information. That profile is governed by Google's own Terms of Service and Privacy Policy. You are the primary owner of that profile. Vertex Local LLC is added only as a manager. You may remove our access at any time through your Google account.</p>
+
+      <h3>7. Your Rights Under Texas Law</h3>
+      <p>Under the Texas Business & Commerce Code § 521.002, you have the right to know what personal identifying information we hold about your business and to request its deletion. To make such a request, contact us directly at the email address below. We will respond within a reasonable time and remove your information from our records upon verified request.</p>
+
+      <h3>8. Data Security</h3>
+      <p>We take reasonable precautions to protect your information from unauthorized access. Submissions are transmitted over encrypted HTTPS connections. Access to our internal records is restricted to Vertex Local LLC personnel only.</p>
+
+      <h3>9. Changes to This Policy</h3>
+      <p>If we make material changes to this Privacy Policy, we will update the effective date at the top of this page. Continued use of this site after changes are posted constitutes your acceptance of the updated policy.</p>
+
+      <h3>10. Contact</h3>
+      <p>For any questions, requests, or concerns regarding this Privacy Policy, contact Vertex Local LLC at:<br><strong>buildabusinessin30days@gmail.com</strong><br>IH-20 Corridor · East Texas</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TERMS OF SERVICE MODAL ═══ -->
+<div class="policy-overlay" id="modal-terms">
+  <div class="policy-modal">
+    <div class="policy-modal-header">
+      <div class="policy-modal-title">Terms of Service</div>
+      <button class="policy-modal-close" onclick="closePolicy()">×</button>
+    </div>
+    <div class="policy-modal-body">
+      <p class="policy-effective">Effective Date: June 2026 &nbsp;·&nbsp; Vertex Local LLC &nbsp;·&nbsp; East Texas</p>
+
+      <h3>1. Agreement to Terms</h3>
+      <p>By accessing this website and submitting the business registration form, you agree to be bound by these Terms of Service. If you do not agree to these terms, do not submit the form. These Terms of Service govern the relationship between Vertex Local LLC ("we," "us," "our") and you, the business owner ("you," "your").</p>
+
+      <h3>2. Description of Services</h3>
+      <p>Vertex Local LLC provides local visibility consulting services to small businesses along the IH-20 corridor in East Texas. These services include, but are not limited to:</p>
+      <ul>
+        <li>Creation and setup of a Google Business Profile on your behalf</li>
+        <li>Creation of a basic business website</li>
+        <li>Listing in the Vértex Local verified business directory</li>
+        <li>Assistance with Google verification</li>
+        <li>Optional ongoing profile management (subject to separate agreement)</li>
+      </ul>
+
+      <h3>3. No Cost — Free Services</h3>
+      <p>The services described in Section 2 are provided to you at no charge. There is no setup fee, no monthly fee, and no obligation of any kind associated with the free tier of service. You will not be billed, invoiced, or charged for any work performed under the free service agreement without your express written consent to a separate paid services agreement.</p>
+
+      <h3>4. Your Authorization</h3>
+      <p>By checking the agreement box and submitting the registration form, you confirm that:</p>
+      <ul>
+        <li>You are the owner or an authorized representative of the business you are registering</li>
+        <li>You authorize Vertex Local LLC to create and manage a Google Business Profile on your behalf</li>
+        <li>The information you have provided is accurate and belongs to your business</li>
+        <li>You understand that Google will mail a verification postcard to your business address</li>
+      </ul>
+
+      <h3>5. Ownership of Your Profile</h3>
+      <p>The Google Business Profile created for your business belongs to you. You will be listed as the primary owner. Vertex Local LLC will be added as a manager only. You retain full ownership and control at all times. You may remove Vertex Local LLC's manager access at any time through your Google account without notice, fee, or penalty.</p>
+
+      <h3>6. Right to Cancel</h3>
+      <p>You may cancel this arrangement at any time, for any reason, with no fees, penalties, or obligations. Upon your request, Vertex Local LLC will transfer full profile ownership to you and remove itself as a manager within 48 hours of receiving your written request.</p>
+
+      <h3>7. Accuracy of Information</h3>
+      <p>You are responsible for the accuracy of the business information you provide. Vertex Local LLC will use the information as submitted. You agree to notify us of any changes to your business name, address, phone number, or hours so your profile can be updated accordingly.</p>
+
+      <h3>8. Limitation of Liability</h3>
+      <p>Vertex Local LLC provides services on a best-efforts basis. We do not guarantee specific results from Google search rankings, customer call volume, or review count. Google's algorithms, policies, and platform changes are outside our control. To the fullest extent permitted by Texas law, Vertex Local LLC's liability for any claim arising from these services shall not exceed the total amount paid by you to Vertex Local LLC in the six months preceding the claim. For free-tier clients, that amount is zero.</p>
+
+      <h3>9. Intellectual Property</h3>
+      <p>Any content you provide — business name, photos, descriptions, logos — remains your property. Vertex Local LLC does not claim ownership of any content you submit. We use it solely to build and maintain your business profile as authorized.</p>
+
+      <h3>10. Governing Law</h3>
+      <p>These Terms of Service are governed by the laws of the State of Texas. Any dispute arising from these terms shall be resolved in the courts of Van Zandt County, Texas, or Wood County, Texas, at our election.</p>
+
+      <h3>11. Changes to These Terms</h3>
+      <p>Vertex Local LLC reserves the right to update these Terms of Service at any time. Changes will be posted on this page with an updated effective date. Continued use of our services after changes are posted constitutes acceptance of the updated terms.</p>
+
+      <h3>12. Contact</h3>
+      <p>For any questions regarding these Terms of Service, contact Vertex Local LLC at:<br><strong>buildabusinessin30days@gmail.com</strong><br>IH-20 Corridor · East Texas</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function openPolicy(type) {
+  closePolicy();
+  var id = type === 'privacy' ? 'modal-privacy' : 'modal-terms';
+  var el = document.getElementById(id);
+  el.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  setTimeout(function() { el.querySelector('.policy-modal-body').scrollTop = 0; }, 10);
+}
+function closePolicy() {
+  document.getElementById('modal-privacy').style.display = 'none';
+  document.getElementById('modal-terms').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.getElementById('modal-privacy').addEventListener('click', function(e) {
+  if (e.target === this) closePolicy();
+});
+document.getElementById('modal-terms').addEventListener('click', function(e) {
+  if (e.target === this) closePolicy();
+});
+</script>
+</body>
+</html>
