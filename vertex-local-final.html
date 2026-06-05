@@ -1493,9 +1493,9 @@ async function handleSignup() {
   btn.disabled = true;
 
   try {
-    await fetch('https://formspree.io/f/xaqznjbz', {
+    await fetch('https://script.google.com/macros/s/AKfycbwyIap3VWSEP9qrJutk6zR3JtpB6HvfykDQ8PEw5EQeAsFx_eY7Vk3alpnEY5SeGVYAiw/exec', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         'Owner Name':        name,
         'Business Name':     biz,
